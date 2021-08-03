@@ -4,24 +4,25 @@ import { Badge, Button, Container, ListGroup } from "react-bootstrap";
 import { useState } from "react";
 
 
-const ItemLista = ({ initNumber, onChange }) => {
+const ItemLista = ({ onChange, onDelete, valor }) => {
 
-    const [num, setNum] = useState(initNumber)
+    const [num, setNum] = useState(valor.initNumber)
 
     const handleAumentar = () => {
         setNum(num + 1)
-        onChange(1, "+")
+        onChange("+", { ...valor, initNumber: num + 1 })
     }
     const handleDisminuir = () => {
         if (num === 0) return;
         setNum(num - 1)
-        onChange(1, "-")
+        onChange("-", { ...valor, initNumber: num + 1 })
     }
 
     return <ListGroup horizontal="lg">
         <ListGroup.Item><Badge bg={num === 0 ? "warning" : "success"}>{num === 0 ? "zero" : num}</Badge></ListGroup.Item>
-        <ListGroup.Item><Button onClick={handleAumentar} variant="outline-info"> Aumentar</Button></ListGroup.Item>
-        <ListGroup.Item><Button onClick={handleDisminuir} variant="outline-warning"> Disminuir</Button></ListGroup.Item>
+        <ListGroup.Item><Button onClick={handleAumentar} variant="outline-info">+</Button></ListGroup.Item>
+        <ListGroup.Item><Button onClick={handleDisminuir} variant="outline-warning">-</Button></ListGroup.Item>
+        <ListGroup.Item><Button onClick={() => { onDelete(valor.id, { ...valor, initNumber: num }) }} variant="outline-danger">delete</Button></ListGroup.Item>
     </ListGroup >
 }
 
@@ -35,16 +36,20 @@ export default class App extends Component {
 
 
     handleButton = () => {
-        const newData = { initNumber: 0 }
+        const newData = { initNumber: 0, id: this.state.lista.length }
         this.setState({ lista: [...this.state.lista, newData] })
     }
 
-    handleChange = (numberItem, operador) => {
+    handleChange = (operador, newva) => {
         if (operador === "+") {
-            this.setState({ total: this.state.total + numberItem })
+            this.setState({ total: this.state.total + 1, lista: [...this.state.lista.filter(li => li.id !== newva.id), newva] })
         } else {
-            this.setState({ total: this.state.total - numberItem })
+            this.setState({ total: this.state.total - 1, lista: [...this.state.lista.filter(li => li.id !== newva.id), newva] })
         }
+    }
+
+    handleDelete = (idDelete, rValue) => {
+        this.setState({ lista: this.state.lista.filter(li => li.id !== idDelete), total: this.state.total - rValue.initNumber })
     }
 
     render() {
@@ -57,7 +62,7 @@ export default class App extends Component {
             </ListGroup>
             <ListGroup >
                 {
-                    lista.map((valor, idx) => <ItemLista key={idx} onChange={this.handleChange} {...valor} />)
+                    lista.map((valor, idx) => <ItemLista key={idx} onChange={this.handleChange} valor={valor} onDelete={this.handleDelete} />)
                 }
             </ListGroup>
             <ListGroup horizontal>
